@@ -1,12 +1,11 @@
-import 'package:example/ui/event.dart';
-import 'package:flutter/material.dart';
-import 'ui/await.dart';
-
 import 'package:api_event/api_event.dart';
+import 'package:flutter/material.dart';
+
+import 'ui/await.dart';
+import 'ui/event.dart';
 
 void main() {
-  Provider provider = Provider();
-  provider.url = "https://jsonplaceholder.typicode.com/";
+  Provider.url = "https://jsonplaceholder.typicode.com/";
 
   runApp(MyApp());
 }

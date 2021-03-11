@@ -9,8 +9,7 @@ import 'package:flutter/material.dart';
 /// [loading], [completed], [error]: виджеты в случае каждого [Status] этого [ApiResponse]
 ///
 /// Если тип события локальный, то виджет принимает:
-/// [child]
-/// [onEvent]: callback от нового события
+/// [builder]
 class EventBuilder<T> extends StatelessWidget {
   final Event event;
   final Widget Function(BuildContext, T) builder;

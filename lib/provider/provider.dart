@@ -20,17 +20,20 @@ class Provider {
   final Duration timeout = Duration(seconds: 10);
 
   String authToken;
-  String url;
+  static String url;
 
-  void run(ApiEvent event) async {
+  void run(ApiEvent event, String params, String body) async {
     event.publish(ApiResponse.loading("Loading"));
+
+    String url = Provider.url + event.service + (params ?? "");
 
     try {
       Response response;
+
       switch (event.httpMethod) {
         case HttpMethod.GET:
           response = await client
-              .get(url + event.url + event.params ?? "",
+              .get(url,
                   headers: event.auth
                       ? {"Authorization": "Bearer " + authToken}
                       : {})
@@ -38,8 +41,8 @@ class Provider {
           break;
         case HttpMethod.POST:
           response = await client
-              .post(url + event.url,
-                  body: event.body,
+              .post(url,
+                  body: body,
                   headers: event.auth
                       ? {"Authorization": "Bearer " + authToken}
                       : {})
@@ -56,11 +59,11 @@ class Provider {
         return;
       }
 
-      throw Exception;
+      throw Exception("Bad status code");
     } catch (exception) {
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
-      print("Ошибка во время выполнения provider.run(${event.url}): " +
+      print("Ошибка во время выполнения provider.run(${event.service}): " +
           exception.toString());
     }
   }
