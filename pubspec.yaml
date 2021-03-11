@@ -1,0 +1,23 @@
+name: api_event
+description: Easy api-event
+version: 1.0.0
+author: MaximMonakhov
+homepage:
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  rxdart: ^0.24.1
+  http: ^0.12.2
+  connectivity: ^0.4.9+3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
