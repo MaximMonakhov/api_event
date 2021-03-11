@@ -33,7 +33,6 @@ class EventBuilder<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<T>(
         stream: event.stream,
-        // ignore: missing_return
         builder: (context, snapshot) {
           if (builder != null) {
             return builder(context, snapshot.data);
@@ -57,10 +56,10 @@ class EventBuilder<T> extends StatelessWidget {
                     ? error(response.message)
                     : errorWidget(response.message);
                 break;
-              default:
-                return currentLoadingWidget;
             }
           }
+
+          return currentLoadingWidget;
         });
   }
 
