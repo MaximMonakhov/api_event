@@ -38,7 +38,6 @@ class ButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(event.value);
     return TextButton(
         onPressed: () =>
             event.publish(event.value == null ? false : !event.value),

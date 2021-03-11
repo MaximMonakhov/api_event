@@ -1,8 +1,7 @@
 name: api_event
 description: Easy api-event
 version: 1.0.0
-author: MaximMonakhov
-homepage:
+homepage: https://github.com/MaximMonakhov/api_event
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
