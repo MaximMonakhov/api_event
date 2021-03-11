@@ -1,6 +1,6 @@
 name: api_event
 description: Easy api-event
-version: 1.0.0
+version: 1.0.2
 homepage: https://github.com/MaximMonakhov/api_event
 
 environment:
