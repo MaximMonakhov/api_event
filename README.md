@@ -8,7 +8,7 @@ Provider.url = "https://localhost:8080/rest/";
 
 ### ApiEvent
 Used to get a response from a service call and control server events.
-* Create a model for data with a static method that parses the response body into the data you want:
+* Create a model for data with a static method that parses the response body into the data you want:<br>
 ```static T parser(String body)```
 ```dart
 class Todo {
