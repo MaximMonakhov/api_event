@@ -48,8 +48,8 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
-        final responseDecode = json.decode(utf8.decode(response.bodyBytes));
-        final data = await compute(event.parser, responseDecode);
+        final String body = utf8.decode(response.bodyBytes);
+        final data = await compute(event.parser, body);
         event.publish(ApiResponse.completed(data));
 
         if (event.saveAuthToken) _setToken(response.headers["set-cookie"]);

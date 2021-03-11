@@ -8,7 +8,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
 
   final String url;
   final HttpMethod httpMethod;
-  final T Function(dynamic body) parser;
+  final T Function(String body) parser;
   final bool auth;
   final bool saveAuthToken;
 
