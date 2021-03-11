@@ -7,9 +7,13 @@ class Todo {
     title = json["title"];
   }
 
-  static List<Todo> parser(map) {
+  static List<Todo> getParser(map) {
     List<Todo> todos = [];
     for (Map object in map) todos.add(Todo.fromJson(object));
     return todos;
+  }
+
+  static bool addParser(map) {
+    return map;
   }
 }

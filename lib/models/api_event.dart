@@ -13,6 +13,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
   final bool saveAuthToken;
 
   String body;
+  String params;
 
   ApiEvent(
       {@required this.url,
@@ -21,9 +22,10 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
       this.auth = false,
       this.saveAuthToken = false});
 
-  void run() {
+  void run({String body}) {
+    this.body = body;
     provider.run(this);
-    body = null;
+    this.body = null;
   }
 
   @override

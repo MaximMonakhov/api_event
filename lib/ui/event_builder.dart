@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 class EventBuilder<T> extends StatelessWidget {
   final Event event;
   final Widget Function(BuildContext, T) builder;
-  final void Function(T) onEvent;
   final Widget initial;
   final Widget loading;
   final Widget Function(T data) completed;
@@ -24,7 +23,6 @@ class EventBuilder<T> extends StatelessWidget {
       {Key key,
       @required this.event,
       this.builder,
-      this.onEvent,
       this.initial,
       this.loading,
       this.completed,

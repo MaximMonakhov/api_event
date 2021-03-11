@@ -1,6 +1,6 @@
 import 'package:example/ui/event.dart';
 import 'package:flutter/material.dart';
-import 'ui/todo_widget.dart';
+import 'ui/await.dart';
 
 import 'package:api_event/api_event.dart';
 
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: Column(
           children: [
-            Expanded(child: TodoWidget()),
+            Expanded(child: AwaitWidget()),
             Expanded(child: LocalWidget()),
           ],
         ),

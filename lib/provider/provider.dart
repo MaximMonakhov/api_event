@@ -30,7 +30,7 @@ class Provider {
       switch (event.httpMethod) {
         case HttpMethod.GET:
           response = await client
-              .get(url + event.url,
+              .get(url + event.url + event.params ?? "",
                   headers: event.auth
                       ? {"Authorization": "Bearer " + authToken}
                       : {})
