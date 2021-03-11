@@ -6,4 +6,10 @@ class Todo {
   Todo.fromJson(Map<String, dynamic> json) {
     title = json["title"];
   }
+
+  static List<Todo> parser(map) {
+    List<Todo> todos = [];
+    for (Map object in map) todos.add(Todo.fromJson(object));
+    return todos;
+  }
 }

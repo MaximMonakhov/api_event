@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 /// [onEvent]: callback от нового события
 class EventBuilder<T> extends StatelessWidget {
   final Event event;
-  final Widget child;
+  final Widget Function(BuildContext, T) builder;
   final void Function(T) onEvent;
   final Widget initial;
   final Widget loading;
@@ -23,14 +23,13 @@ class EventBuilder<T> extends StatelessWidget {
   const EventBuilder(
       {Key key,
       @required this.event,
-      this.child,
+      this.builder,
       this.onEvent,
       this.initial,
       this.loading,
       this.completed,
       this.error})
-      : assert(event != null &&
-            ((child != null && onEvent != null) || completed != null)),
+      : assert(event != null && (builder != null || completed != null)),
         super(key: key);
 
   @override
@@ -39,12 +38,11 @@ class EventBuilder<T> extends StatelessWidget {
         stream: event.stream,
         // ignore: missing_return
         builder: (context, snapshot) {
-          if (child != null) {
-            if (snapshot.hasData) onEvent(snapshot.data);
-            return child;
+          if (builder != null) {
+            return builder(context, snapshot.data);
           }
 
-          Widget currentLoadingWidget = loading ?? loadingWidget;
+          Widget currentLoadingWidget = loading ?? loadingWidget();
 
           if (!snapshot.hasData) return initial ?? currentLoadingWidget;
 
@@ -58,7 +56,9 @@ class EventBuilder<T> extends StatelessWidget {
                 return completed(response.data);
                 break;
               case Status.ERROR:
-                return error(response.message) ?? errorWidget;
+                return error != null
+                    ? error(response.message)
+                    : errorWidget(response.message);
                 break;
               default:
                 return currentLoadingWidget;
@@ -81,7 +81,7 @@ class EventBuilder<T> extends StatelessWidget {
         ),
       );
 
-  Widget errorWidget() => Center(
-        child: Text("Произошла ошибка"),
+  Widget errorWidget(String message) => Center(
+        child: Text("Произошла ошибка: " + message),
       );
 }

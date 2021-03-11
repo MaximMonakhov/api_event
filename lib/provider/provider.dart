@@ -48,8 +48,8 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
-        final data = await compute(
-            event.parse, json.decode(utf8.decode(response.bodyBytes)));
+        final responseDecode = json.decode(utf8.decode(response.bodyBytes));
+        final data = await compute(event.parser, responseDecode);
         event.publish(ApiResponse.completed(data));
 
         if (event.saveAuthToken) _setToken(response.headers["set-cookie"]);
@@ -60,6 +60,8 @@ class Provider {
     } catch (exception) {
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
+      print("Ошибка во время выполнения provider.run(${event.url}): " +
+          exception.toString());
     }
   }
 

@@ -8,7 +8,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
 
   final String url;
   final HttpMethod httpMethod;
-  final T Function(dynamic body) responseBodyParser;
+  final T Function(dynamic body) parser;
   final bool auth;
   final bool saveAuthToken;
 
@@ -17,7 +17,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
   ApiEvent(
       {@required this.url,
       @required this.httpMethod,
-      @required this.responseBodyParser,
+      @required this.parser,
       this.auth = false,
       this.saveAuthToken = false});
 
@@ -31,8 +31,6 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
     ApiResponse<T> response = ApiResponse<T>(event);
     subject.sink.add(response);
   }
-
-  T parse(dynamic body) => responseBodyParser(body);
 }
 
 enum HttpMethod { GET, POST }
