@@ -17,7 +17,11 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
       @required this.httpMethod,
       @required this.parser,
       this.auth = false,
-      this.saveAuthToken = false});
+      this.saveAuthToken = false})
+      : assert(service != null &&
+            service.isNotEmpty &&
+            httpMethod != null &&
+            parser != null);
 
   @override
   void publish(ApiResponse<dynamic> event) {
@@ -25,7 +29,8 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
     subject.sink.add(response);
   }
 
-  void run({String params, String body}) => provider.run(this, params, body);
+  Future run({String params, String body}) async =>
+      await provider.run(this, params, body);
 }
 
 enum HttpMethod { GET, POST }

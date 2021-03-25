@@ -25,11 +25,7 @@ class _AwaitWidgetState extends State<AwaitWidget> {
             child: ListView.separated(
                 separatorBuilder: (context, index) => Divider(),
                 itemCount: data.length,
-                itemBuilder: (context, index) => GestureDetector(
-                      onTap: () =>
-                          TodoEvents.addTodo.run(body: data[index].toString()),
-                      child: Text(data[index].title),
-                    ))),
+                itemBuilder: (context, index) => Text(data[index].title))),
       ),
     );
   }

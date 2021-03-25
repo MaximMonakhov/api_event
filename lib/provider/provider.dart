@@ -16,16 +16,15 @@ class Provider {
   }
   Provider._internal();
 
-  final IOClient client = new IOClient();
-  final Duration timeout = Duration(seconds: 10);
-
+  Duration timeout = Duration(seconds: 10);
+  IOClient client = new IOClient();
   String authToken;
   static String url;
 
-  void run(ApiEvent event, String params, String body) async {
+  Future run(ApiEvent event, String params, String body) async {
     event.publish(ApiResponse.loading("Loading"));
 
-    String url = Provider.url + event.service + (params ?? "");
+    String url = (Provider.url ?? "") + event.service + (params ?? "");
 
     try {
       Response response;
@@ -51,9 +50,12 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
-        final String body = utf8.decode(response.bodyBytes);
-        final data = await compute(event.parser, body);
-        event.publish(ApiResponse.completed(data));
+        if (response.body.isNotEmpty) {
+          final String body = utf8.decode(response.bodyBytes);
+          final data = await compute(event.parser, body);
+          event.publish(ApiResponse.completed(data));
+        } else
+          event.publish(ApiResponse.completed(''));
 
         if (event.saveAuthToken) _setToken(response.headers["set-cookie"]);
         return;
@@ -63,8 +65,6 @@ class Provider {
     } catch (exception) {
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
-      print("Ошибка во время выполнения provider.run(${event.service}): " +
-          exception.toString());
     }
   }
 
@@ -85,10 +85,14 @@ class Provider {
   }
 
   static Future<bool> checkInternetConnection() async {
-    ConnectivityResult connectivityResult =
-        await Connectivity().checkConnectivity();
+    try {
+      ConnectivityResult connectivityResult =
+          await Connectivity().checkConnectivity();
 
-    return connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
+      return connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi;
+    } catch (exception) {
+      return true;
+    }
   }
 }

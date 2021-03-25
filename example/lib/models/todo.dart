@@ -9,16 +9,17 @@ class Todo {
     title = json["title"];
   }
 
-  static List<Todo> getParser(String body) {
+  static Todo todoParser(String body) {
+    Map json = convert.json.decode(body);
+    return Todo.fromJson(json);
+  }
+
+  static List<Todo> todosParser(String body) {
     List json = convert.json.decode(body);
     List<Todo> todos = [];
 
     for (Map object in json) todos.add(Todo.fromJson(object));
 
     return todos;
-  }
-
-  static bool addParser(String body) {
-    return body.toLowerCase() == "true";
   }
 }
