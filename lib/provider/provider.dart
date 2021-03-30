@@ -21,7 +21,7 @@ class Provider {
   String authToken;
   static String url;
 
-  Future run(ApiEvent event, String params, String body) async {
+  Future run(ApiEvent event, String params, String body, Map headers) async {
     event.publish(ApiResponse.loading("Loading"));
 
     String url = (Provider.url ?? "") + event.service + (params ?? "");
@@ -29,22 +29,20 @@ class Provider {
     try {
       Response response;
 
+      Map headersBuilder = {};
+
+      headersBuilder.addAll(headers ?? {});
+      headersBuilder
+          .addAll(event.auth ? {"Authorization": "Bearer " + authToken} : {});
+
       switch (event.httpMethod) {
         case HttpMethod.GET:
-          response = await client
-              .get(url,
-                  headers: event.auth
-                      ? {"Authorization": "Bearer " + authToken}
-                      : {})
-              .timeout(timeout);
+          response =
+              await client.get(url, headers: headersBuilder).timeout(timeout);
           break;
         case HttpMethod.POST:
           response = await client
-              .post(url,
-                  body: body,
-                  headers: event.auth
-                      ? {"Authorization": "Bearer " + authToken}
-                      : {})
+              .post(url, body: body, headers: headersBuilder)
               .timeout(timeout);
           break;
       }

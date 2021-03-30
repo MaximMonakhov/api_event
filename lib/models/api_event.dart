@@ -29,8 +29,9 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
     subject.sink.add(response);
   }
 
-  Future run({String params, String body}) async =>
-      await provider.run(this, params, body);
+  Future run(
+          {String params, String body, Map<String, dynamic> headers}) async =>
+      await provider.run(this, params, body, headers);
 }
 
 enum HttpMethod { GET, POST }
