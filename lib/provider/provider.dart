@@ -61,6 +61,7 @@ class Provider {
 
       throw Exception("Bad status code");
     } catch (exception) {
+      print("Exception on provider.run: " + exception.toString());
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
     }
