@@ -21,7 +21,8 @@ class Provider {
   String authToken;
   static String url;
 
-  Future run(ApiEvent event, String params, String body, Map headers) async {
+  Future run(ApiEvent event, String params, String body,
+      Map<String, String> headers) async {
     event.publish(ApiResponse.loading("Loading"));
 
     String url = (Provider.url ?? "") + event.service + (params ?? "");
@@ -29,7 +30,7 @@ class Provider {
     try {
       Response response;
 
-      Map headersBuilder = {};
+      Map<String, String> headersBuilder = {};
 
       headersBuilder.addAll(headers ?? {});
       headersBuilder

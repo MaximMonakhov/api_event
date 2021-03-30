@@ -29,8 +29,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
     subject.sink.add(response);
   }
 
-  Future run(
-          {String params, String body, Map<String, dynamic> headers}) async =>
+  Future run({String params, String body, Map<String, String> headers}) async =>
       await provider.run(this, params, body, headers);
 }
 
