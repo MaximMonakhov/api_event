@@ -21,11 +21,13 @@ class Provider {
   String authToken;
   static String url;
 
-  Future run(ApiEvent event, String params, String body,
+  Future<dynamic> run(ApiEvent event, String params, String body,
       Map<String, String> headers) async {
     event.publish(ApiResponse.loading("Loading"));
 
-    String url = (Provider.url ?? "") + event.service + (params ?? "");
+    String url = (Provider.url ?? "") +
+        event.service +
+        (params != null ? "/" + params : "");
 
     try {
       Response response;
@@ -49,7 +51,7 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
-        if (response.body.isNotEmpty) {
+        if (response.body.isNotEmpty && event.parser != null) {
           final String body = utf8.decode(response.bodyBytes);
           final data = await compute(event.parser, body);
           event.publish(ApiResponse.completed(data));
@@ -57,15 +59,15 @@ class Provider {
           event.publish(ApiResponse.completed(''));
 
         if (event.saveAuthToken) _setToken(response.headers["set-cookie"]);
-        return;
-      }
-
-      throw Exception("Bad status code");
+      } else
+        throw Exception("Bad status code");
     } catch (exception) {
       print("Exception on provider.run: " + exception.toString());
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
     }
+
+    return event.value;
   }
 
   void _setToken(String cookie) {

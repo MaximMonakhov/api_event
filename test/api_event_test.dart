@@ -152,7 +152,7 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.post('todos?param=true', body: "body", headers: {}))
+      when(ioClientMock.post('todos/param', body: "body", headers: {}))
           .thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
 
       provider.client = ioClientMock;
@@ -162,8 +162,9 @@ void main() {
           httpMethod: HttpMethod.POST,
           parser: Todo.todosParser);
 
-      await event.run(params: "?param=true", body: "body");
+      var response = await event.run(params: "param", body: "body");
 
+      expect(response.status, Status.COMPLETED);
       expect(event.value.status, Status.COMPLETED);
     });
   });

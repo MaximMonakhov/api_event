@@ -31,7 +31,7 @@ class EventBuilder<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<T>(
+    return StreamBuilder(
         stream: event.stream,
         builder: (context, snapshot) {
           if (builder != null) {
