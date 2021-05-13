@@ -15,8 +15,9 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get('todos', headers: {})).thenAnswer((_) async =>
-          Response('[{"title": "Test"}, {"title": "Test2"}]', 200));
+      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer(
+          (_) async =>
+              Response('[{"title": "Test"}, {"title": "Test2"}]', 200));
 
       provider.client = ioClientMock;
 
@@ -35,7 +36,7 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get('todo', headers: {}))
+      when(ioClientMock.get(Uri.parse('todo'), headers: {}))
           .thenAnswer((_) async => Response('{"title": "Test"}', 200));
 
       provider.client = ioClientMock;
@@ -52,7 +53,7 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get('todos', headers: {}))
+      when(ioClientMock.get(Uri.parse('todos'), headers: {}))
           .thenAnswer((_) async => Response('fail', 200));
 
       provider.client = ioClientMock;
@@ -71,7 +72,7 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get('todos', headers: {}))
+      when(ioClientMock.get(Uri.parse('todos'), headers: {}))
           .thenAnswer((_) async => Response('', 400));
 
       provider.client = ioClientMock;
@@ -90,7 +91,7 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get('void', headers: {}))
+      when(ioClientMock.get(Uri.parse('void'), headers: {}))
           .thenAnswer((_) async => Response('', 200));
 
       provider.client = ioClientMock;
@@ -107,10 +108,10 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get('todos', headers: {})).thenAnswer((_) async =>
-          Response('[{"title": "Test"}]', 200, headers: {
-            "set-cookie": "session_token=testtesttesttesttesttesttest;"
-          }));
+      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer(
+          (_) async => Response('[{"title": "Test"}]', 200, headers: {
+                "set-cookie": "session_token=testtesttesttesttesttesttest;"
+              }));
 
       provider.client = ioClientMock;
 
@@ -132,7 +133,8 @@ void main() {
 
       provider.authToken = "test";
 
-      when(ioClientMock.get('todos', headers: {"Authorization": "Bearer test"}))
+      when(ioClientMock.get(Uri.parse('todos'),
+              headers: {"Authorization": "Bearer test"}))
           .thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
 
       provider.client = ioClientMock;
@@ -152,7 +154,8 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.post('todos/param', body: "body", headers: {}))
+      when(ioClientMock
+              .post(Uri.parse('todos/param'), body: "body", headers: {}))
           .thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
 
       provider.client = ioClientMock;

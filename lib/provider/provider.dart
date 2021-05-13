@@ -40,12 +40,13 @@ class Provider {
 
       switch (event.httpMethod) {
         case HttpMethod.GET:
-          response =
-              await client.get(url, headers: headersBuilder).timeout(timeout);
+          response = await client
+              .get(Uri.parse(url), headers: headersBuilder)
+              .timeout(timeout);
           break;
         case HttpMethod.POST:
           response = await client
-              .post(url, body: body, headers: headersBuilder)
+              .post(Uri.parse(url), body: body, headers: headersBuilder)
               .timeout(timeout);
           break;
       }
