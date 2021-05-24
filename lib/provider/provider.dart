@@ -22,7 +22,7 @@ class Provider {
   static String url;
 
   Future<dynamic> run(ApiEvent event, String params, String body,
-      Map<String, String> headers) async {
+      Map<String, String> headers, List<Cookie> cookies) async {
     event.publish(ApiResponse.loading("Loading"));
 
     String url = (Provider.url ?? "") +
@@ -35,8 +35,14 @@ class Provider {
       Map<String, String> headersBuilder = {};
 
       headersBuilder.addAll(headers ?? {});
-      headersBuilder
-          .addAll(event.auth ? {"Authorization": "Bearer " + authToken} : {});
+
+      if (cookies != null && cookies.isNotEmpty) {
+        String rawCookies = cookies
+            .map((Cookie cookie) => '${cookie.name}=${cookie.value}')
+            .join('; ');
+        if (rawCookies != null && rawCookies.isNotEmpty)
+          headersBuilder.addAll({"cookie": rawCookies});
+      }
 
       switch (event.httpMethod) {
         case HttpMethod.GET:
@@ -58,8 +64,6 @@ class Provider {
           event.publish(ApiResponse.completed(data));
         } else
           event.publish(ApiResponse.completed(''));
-
-        if (event.saveAuthToken) _setToken(response.headers["set-cookie"]);
       } else
         throw Exception("Bad status code");
     } catch (exception) {
@@ -69,11 +73,6 @@ class Provider {
     }
 
     return event.value;
-  }
-
-  void _setToken(String cookie) {
-    authToken = cookie.substring(cookie.indexOf("session_token=") + 14,
-        cookie.indexOf(";", cookie.indexOf("session_token=")));
   }
 
   Future<ApiResponse> _onException(exception) async {

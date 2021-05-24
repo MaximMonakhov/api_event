@@ -118,36 +118,12 @@ void main() {
       ApiEvent<List<Todo>> event = ApiEvent(
           service: "todos",
           httpMethod: HttpMethod.GET,
-          parser: Todo.todosParser,
-          saveAuthToken: true);
+          parser: Todo.todosParser);
 
       await event.run();
 
       expect(event.value.status, Status.COMPLETED);
       expect(provider.authToken, "testtesttesttesttesttesttest");
-    });
-
-    test('Using auth token', () async {
-      Provider provider = Provider();
-      IOClientMock ioClientMock = IOClientMock();
-
-      provider.authToken = "test";
-
-      when(ioClientMock.get(Uri.parse('todos'),
-              headers: {"Authorization": "Bearer test"}))
-          .thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
-
-      provider.client = ioClientMock;
-
-      ApiEvent<List<Todo>> event = ApiEvent(
-          service: "todos",
-          httpMethod: HttpMethod.GET,
-          parser: Todo.todosParser,
-          auth: true);
-
-      await event.run();
-
-      expect(event.value.status, Status.COMPLETED);
     });
 
     test('POST params and body', () async {

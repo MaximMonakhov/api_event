@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:api_event/models/api_response.dart';
 import 'package:api_event/models/event.dart';
 import 'package:api_event/provider/provider.dart';
@@ -9,15 +11,8 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
   final String service;
   final HttpMethod httpMethod;
   final T Function(String body) parser;
-  final bool auth;
-  final bool saveAuthToken;
 
-  ApiEvent(
-      {@required this.service,
-      @required this.httpMethod,
-      this.parser,
-      this.auth = false,
-      this.saveAuthToken = false})
+  ApiEvent({@required this.service, @required this.httpMethod, this.parser})
       : assert(service != null && service.isNotEmpty && httpMethod != null);
 
   @override
@@ -27,8 +22,11 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
   }
 
   Future<ApiResponse<T>> run(
-          {String params, String body, Map<String, String> headers}) async =>
-      await provider.run(this, params, body, headers);
+          {String params,
+          String body,
+          Map<String, String> headers,
+          List<Cookie> cookies}) async =>
+      await provider.run(this, params, body, headers, cookies);
 }
 
 enum HttpMethod { GET, POST }
