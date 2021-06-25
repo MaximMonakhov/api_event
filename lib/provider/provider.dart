@@ -21,13 +21,10 @@ class Provider {
   String authToken;
   static String url;
 
-  Future<dynamic> run(ApiEvent event, String params, String body,
-      Map<String, String> headers, List<Cookie> cookies) async {
+  Future<dynamic> run(ApiEvent event, String params, String body, Map<String, String> headers, List<Cookie> cookies) async {
     event.publish(ApiResponse.loading("Loading"));
 
-    String url = (Provider.url ?? "") +
-        event.service +
-        (params != null ? "/" + params : "");
+    String url = (Provider.url ?? "") + event.service + (params != null ? "/" + params : "");
 
     try {
       Response response;
@@ -37,23 +34,16 @@ class Provider {
       headersBuilder.addAll(headers ?? {});
 
       if (cookies != null && cookies.isNotEmpty) {
-        String rawCookies = cookies
-            .map((Cookie cookie) => '${cookie.name}=${cookie.value}')
-            .join('; ');
-        if (rawCookies != null && rawCookies.isNotEmpty)
-          headersBuilder.addAll({"cookie": rawCookies});
+        String rawCookies = cookies.map((Cookie cookie) => '${cookie.name}=${cookie.value}').join('; ');
+        if (rawCookies != null && rawCookies.isNotEmpty) headersBuilder.addAll({"cookie": rawCookies});
       }
 
       switch (event.httpMethod) {
         case HttpMethod.GET:
-          response = await client
-              .get(Uri.parse(url), headers: headersBuilder)
-              .timeout(timeout);
+          response = await client.get(Uri.parse(url), headers: headersBuilder).timeout(timeout);
           break;
         case HttpMethod.POST:
-          response = await client
-              .post(Uri.parse(url), body: body, headers: headersBuilder)
-              .timeout(timeout);
+          response = await client.post(Uri.parse(url), body: body, headers: headersBuilder).timeout(timeout);
           break;
       }
 
@@ -65,7 +55,7 @@ class Provider {
         } else
           event.publish(ApiResponse.completed(''));
       } else
-        throw Exception("Bad status code");
+        throw Exception("Bad status code: " + response.statusCode.toString() + ". Body: " + utf8.decode(response.bodyBytes));
     } catch (exception) {
       print("Exception on provider.run: " + exception.toString());
       ApiResponse errorApiResponse = await _onException(exception);
@@ -79,8 +69,7 @@ class Provider {
     bool internetStatus = await checkInternetConnection();
 
     return internetStatus
-        ? exception.runtimeType == SocketException ||
-                exception.runtimeType == TimeoutException
+        ? exception.runtimeType == SocketException || exception.runtimeType == TimeoutException
             ? ApiResponse.error('Сервис недоступен')
             : ApiResponse.error('Возникла внутренняя ошибка')
         : ApiResponse.error('Отсутствует интернет-соединение');
@@ -88,11 +77,9 @@ class Provider {
 
   static Future<bool> checkInternetConnection() async {
     try {
-      ConnectivityResult connectivityResult =
-          await Connectivity().checkConnectivity();
+      ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
 
-      return connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi;
+      return connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
     } catch (exception) {
       return true;
     }
