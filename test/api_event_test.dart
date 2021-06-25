@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:api_event/api_event.dart';
 import 'package:api_event/provider/provider.dart';
 import 'package:flutter_test/flutter_test.dart' as flutter_test;
@@ -87,23 +89,6 @@ void main() {
       expect(event.value.status, Status.COMPLETED);
     });
 
-    test('Saving auth token', () async {
-      Provider provider = Provider();
-      IOClientMock ioClientMock = IOClientMock();
-
-      when(ioClientMock.get(Uri.parse('todos'), headers: {}))
-          .thenAnswer((_) async => Response('[{"title": "Test"}]', 200, headers: {"set-cookie": "session_token=testtesttesttesttesttesttest;"}));
-
-      provider.client = ioClientMock;
-
-      ApiEvent<List<Todo>> event = ApiEvent(service: "todos", httpMethod: HttpMethod.GET, parser: Todo.todosParser);
-
-      await event.run();
-
-      expect(event.value.status, Status.COMPLETED);
-      expect(provider.authToken, "testtesttesttesttesttesttest");
-    });
-
     test('POST params and body', () async {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
@@ -132,10 +117,18 @@ void main() {
 
       var response = await event.run(params: "param", body: "body");
 
-      print(event.value.data);
-
       expect(response.status, Status.COMPLETED);
       expect(event.value.status, Status.COMPLETED);
+      expect(event.value.data, '[{"title": "Test"}]');
+    });
+
+    test('Cookies parser', () async {
+      String rawCookies = "RK-8fa50b40-f818-11ea-a795-2f7c9603d152=27Z+NPZAAfIRGAng5SfEprA9CjOh5nhXT9ArSHKgFzE=; path=/application; test=s";
+      Provider provider = Provider();
+      List<Cookie> cookies = provider.parseCookie(rawCookies);
+
+      expect(cookies.length, 3);
+      expect(cookies[2].value, "s");
     });
   });
 }

@@ -11,9 +11,9 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
   final String service;
   final HttpMethod httpMethod;
   final T Function(String body) parser;
+  List<Cookie> cookies;
 
-  ApiEvent({@required this.service, @required this.httpMethod, this.parser})
-      : assert(service != null && service.isNotEmpty && httpMethod != null);
+  ApiEvent({@required this.service, @required this.httpMethod, this.parser}) : assert(service != null && service.isNotEmpty && httpMethod != null);
 
   @override
   void publish(ApiResponse<dynamic> event) {
@@ -21,11 +21,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
     subject.sink.add(response);
   }
 
-  Future<ApiResponse<T>> run(
-          {String params,
-          String body,
-          Map<String, String> headers,
-          List<Cookie> cookies}) async =>
+  Future<ApiResponse<T>> run({String params, String body, Map<String, String> headers, List<Cookie> cookies}) async =>
       await provider.run(this, params, body, headers, cookies);
 }
 

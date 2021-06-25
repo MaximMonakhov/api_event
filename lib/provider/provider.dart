@@ -18,7 +18,6 @@ class Provider {
 
   Duration timeout = Duration(seconds: 10);
   IOClient client = new IOClient();
-  String authToken;
   static String url;
 
   Future<dynamic> run(ApiEvent event, String params, String body, Map<String, String> headers, List<Cookie> cookies) async {
@@ -48,6 +47,9 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
+        List<Cookie> cookies = parseCookie(response.headers["Set-Cookie"]);
+        event.cookies = cookies;
+
         final String body = utf8.decode(response.bodyBytes);
 
         if (response.body.isNotEmpty && event.parser != null) {
@@ -84,5 +86,16 @@ class Provider {
     } catch (exception) {
       return true;
     }
+  }
+
+  List<Cookie> parseCookie(String rawCookies) {
+    if (rawCookies == null) return null;
+
+    List<Cookie> cookies = [];
+    List<String> pairs = rawCookies.replaceAll(" ", "").split(";");
+
+    for (String pair in pairs) cookies.add(Cookie(pair.substring(0, pair.indexOf("=")), pair.substring(pair.indexOf("=") + 1, pair.length)));
+
+    return cookies;
   }
 }
