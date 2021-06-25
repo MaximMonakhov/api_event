@@ -6,8 +6,6 @@ import 'package:api_event/models/api_event.dart';
 import 'package:api_event/models/api_response.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
-import 'package:http/io_client.dart';
 
 class Provider {
   static final Provider _provider = Provider._internal();
@@ -16,17 +14,19 @@ class Provider {
   }
   Provider._internal();
 
-  Duration timeout = Duration(seconds: 10);
-  IOClient client = new IOClient();
   static String url;
+
+  Duration timeout = Duration(seconds: 10);
+  HttpClient httpClient = HttpClient();
 
   Future<dynamic> run(ApiEvent event, String params, String body, Map<String, String> headers, List<Cookie> cookies) async {
     event.publish(ApiResponse.loading("Loading"));
 
     String url = (Provider.url ?? "") + event.service + (params != null ? "/" + params : "");
+    Uri uri = Uri.parse(url);
 
     try {
-      Response response;
+      HttpClientRequest request;
 
       Map<String, String> headersBuilder = {};
 
@@ -37,28 +37,41 @@ class Provider {
         if (rawCookies != null && rawCookies.isNotEmpty) headersBuilder.addAll({"cookie": rawCookies});
       }
 
+      headersBuilder.forEach((key, value) {
+        request.headers.add(key, value);
+      });
+
       switch (event.httpMethod) {
         case HttpMethod.GET:
-          response = await client.get(Uri.parse(url), headers: headersBuilder).timeout(timeout);
+          request = await httpClient.get(uri.host, uri.port, uri.path).timeout(timeout);
           break;
         case HttpMethod.POST:
-          response = await client.post(Uri.parse(url), body: body, headers: headersBuilder).timeout(timeout);
+          List<int> bodyBytes = utf8.encode(body);
+          request.add(bodyBytes);
+          request = await httpClient.post(uri.host, uri.port, uri.path).timeout(timeout);
           break;
       }
 
+      HttpClientResponse response = await request.close();
+
       if (response.statusCode == 200) {
-        List<Cookie> cookies = parseCookie(response.headers["set-cookie"]);
-        event.cookies = cookies;
+        event.cookies = response.cookies;
 
-        final String body = utf8.decode(response.bodyBytes);
+        final completer = Completer<String>();
+        final contents = StringBuffer();
+        response.transform(utf8.decoder).listen((data) {
+          contents.write(data);
+        }, onDone: () => completer.complete(contents.toString()));
 
-        if (response.body.isNotEmpty && event.parser != null) {
+        String body = await completer.future;
+
+        if (body.isNotEmpty && event.parser != null) {
           final data = await compute(event.parser, body);
           event.publish(ApiResponse.completed(data));
         } else
           event.publish(ApiResponse.completed(body));
       } else
-        throw Exception("Bad status code: " + response.statusCode.toString() + ". Body: " + utf8.decode(response.bodyBytes));
+        throw Exception("Bad status code: " + response.statusCode.toString() + ". Body: " + body);
     } catch (exception) {
       print("Exception on provider.run: " + exception.toString());
       ApiResponse errorApiResponse = await _onException(exception);
@@ -86,16 +99,5 @@ class Provider {
     } catch (exception) {
       return true;
     }
-  }
-
-  List<Cookie> parseCookie(String rawCookies) {
-    if (rawCookies == null) return null;
-
-    List<Cookie> cookies = [];
-    List<String> pairs = rawCookies.replaceAll(" ", "").split(",");
-
-    for (String pair in pairs) cookies.add(Cookie.fromSetCookieValue(pair));
-
-    return cookies;
   }
 }
