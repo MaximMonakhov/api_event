@@ -123,12 +123,13 @@ void main() {
     });
 
     test('Cookies parser', () async {
-      String rawCookies = "RK-8fa50b40-f818-11ea-a795-2f7c9603d152=27Z+NPZAAfIRGAng5SfEprA9CjOh5nhXT9ArSHKgFzE=; path=/application; test=s";
+      String rawCookies =
+          "CN-0294B41265CA11E9BCB44B8D11E954F3=aHR0cDovLzEwLjAuMi4yOjgwODAv; path=/,JSESSIONID=kWPLSDxXFgdsostQ7-WfxL0V.node1; path=/application,RK-8fa50b40-f818-11ea-a795-2f7c9603d152=NuXpOzBX3gzZHJHQYDgHHUPWbPCRmjmD1Qylf3Qrv5E=; path=/application";
       Provider provider = Provider();
       List<Cookie> cookies = provider.parseCookie(rawCookies);
 
       expect(cookies.length, 3);
-      expect(cookies[2].value, "s");
+      expect(cookies[1].value, "kWPLSDxXFgdsostQ7-WfxL0V.node1");
     });
   });
 }

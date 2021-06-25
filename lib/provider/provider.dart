@@ -92,9 +92,9 @@ class Provider {
     if (rawCookies == null) return null;
 
     List<Cookie> cookies = [];
-    List<String> pairs = rawCookies.replaceAll(" ", "").split(";");
+    List<String> pairs = rawCookies.replaceAll(" ", "").split(",");
 
-    for (String pair in pairs) cookies.add(Cookie(pair.substring(0, pair.indexOf("=")), pair.substring(pair.indexOf("=") + 1, pair.length)));
+    for (String pair in pairs) cookies.add(Cookie.fromSetCookieValue(pair));
 
     return cookies;
   }
