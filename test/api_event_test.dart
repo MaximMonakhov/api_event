@@ -15,16 +15,11 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer(
-          (_) async =>
-              Response('[{"title": "Test"}, {"title": "Test2"}]', 200));
+      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer((_) async => Response('[{"title": "Test"}, {"title": "Test2"}]', 200));
 
       provider.client = ioClientMock;
 
-      ApiEvent<List<Todo>> event = ApiEvent(
-          service: "todos",
-          httpMethod: HttpMethod.GET,
-          parser: Todo.todosParser);
+      ApiEvent<List<Todo>> event = ApiEvent(service: "todos", httpMethod: HttpMethod.GET, parser: Todo.todosParser);
 
       await event.run();
 
@@ -36,13 +31,11 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get(Uri.parse('todo'), headers: {}))
-          .thenAnswer((_) async => Response('{"title": "Test"}', 200));
+      when(ioClientMock.get(Uri.parse('todo'), headers: {})).thenAnswer((_) async => Response('{"title": "Test"}', 200));
 
       provider.client = ioClientMock;
 
-      ApiEvent<Todo> event = ApiEvent(
-          service: "todo", httpMethod: HttpMethod.GET, parser: Todo.todoParser);
+      ApiEvent<Todo> event = ApiEvent(service: "todo", httpMethod: HttpMethod.GET, parser: Todo.todoParser);
 
       await event.run();
 
@@ -53,15 +46,11 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get(Uri.parse('todos'), headers: {}))
-          .thenAnswer((_) async => Response('fail', 200));
+      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer((_) async => Response('fail', 200));
 
       provider.client = ioClientMock;
 
-      ApiEvent<List<Todo>> event = ApiEvent(
-          service: "todos",
-          httpMethod: HttpMethod.GET,
-          parser: Todo.todosParser);
+      ApiEvent<List<Todo>> event = ApiEvent(service: "todos", httpMethod: HttpMethod.GET, parser: Todo.todosParser);
 
       await event.run();
 
@@ -72,15 +61,11 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get(Uri.parse('todos'), headers: {}))
-          .thenAnswer((_) async => Response('', 400));
+      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer((_) async => Response('', 400));
 
       provider.client = ioClientMock;
 
-      ApiEvent<List<Todo>> event = ApiEvent(
-          service: "todos",
-          httpMethod: HttpMethod.GET,
-          parser: Todo.todosParser);
+      ApiEvent<List<Todo>> event = ApiEvent(service: "todos", httpMethod: HttpMethod.GET, parser: Todo.todosParser);
 
       await event.run();
 
@@ -91,13 +76,11 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get(Uri.parse('void'), headers: {}))
-          .thenAnswer((_) async => Response('', 200));
+      when(ioClientMock.get(Uri.parse('void'), headers: {})).thenAnswer((_) async => Response('', 200));
 
       provider.client = ioClientMock;
 
-      ApiEvent<void> event = ApiEvent(
-          service: "void", httpMethod: HttpMethod.GET, parser: (body) {});
+      ApiEvent<void> event = ApiEvent(service: "void", httpMethod: HttpMethod.GET, parser: (body) {});
 
       await event.run();
 
@@ -108,17 +91,12 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock.get(Uri.parse('todos'), headers: {})).thenAnswer(
-          (_) async => Response('[{"title": "Test"}]', 200, headers: {
-                "set-cookie": "session_token=testtesttesttesttesttesttest;"
-              }));
+      when(ioClientMock.get(Uri.parse('todos'), headers: {}))
+          .thenAnswer((_) async => Response('[{"title": "Test"}]', 200, headers: {"set-cookie": "session_token=testtesttesttesttesttesttest;"}));
 
       provider.client = ioClientMock;
 
-      ApiEvent<List<Todo>> event = ApiEvent(
-          service: "todos",
-          httpMethod: HttpMethod.GET,
-          parser: Todo.todosParser);
+      ApiEvent<List<Todo>> event = ApiEvent(service: "todos", httpMethod: HttpMethod.GET, parser: Todo.todosParser);
 
       await event.run();
 
@@ -130,18 +108,31 @@ void main() {
       Provider provider = Provider();
       IOClientMock ioClientMock = IOClientMock();
 
-      when(ioClientMock
-              .post(Uri.parse('todos/param'), body: "body", headers: {}))
-          .thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
+      when(ioClientMock.post(Uri.parse('todos/param'), body: "body", headers: {})).thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
 
       provider.client = ioClientMock;
 
-      ApiEvent<List<Todo>> event = ApiEvent(
-          service: "todos",
-          httpMethod: HttpMethod.POST,
-          parser: Todo.todosParser);
+      ApiEvent<List<Todo>> event = ApiEvent(service: "todos", httpMethod: HttpMethod.POST, parser: Todo.todosParser);
 
       var response = await event.run(params: "param", body: "body");
+
+      expect(response.status, Status.COMPLETED);
+      expect(event.value.status, Status.COMPLETED);
+    });
+
+    test('Empty parser', () async {
+      Provider provider = Provider();
+      IOClientMock ioClientMock = IOClientMock();
+
+      when(ioClientMock.post(Uri.parse('todos/param'), body: "body", headers: {})).thenAnswer((_) async => Response('[{"title": "Test"}]', 200));
+
+      provider.client = ioClientMock;
+
+      ApiEvent event = ApiEvent(service: "todos", httpMethod: HttpMethod.POST);
+
+      var response = await event.run(params: "param", body: "body");
+
+      print(event.value.data);
 
       expect(response.status, Status.COMPLETED);
       expect(event.value.status, Status.COMPLETED);

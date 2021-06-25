@@ -48,12 +48,13 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
+        final String body = utf8.decode(response.bodyBytes);
+
         if (response.body.isNotEmpty && event.parser != null) {
-          final String body = utf8.decode(response.bodyBytes);
           final data = await compute(event.parser, body);
           event.publish(ApiResponse.completed(data));
         } else
-          event.publish(ApiResponse.completed(''));
+          event.publish(ApiResponse.completed(body));
       } else
         throw Exception("Bad status code: " + response.statusCode.toString() + ". Body: " + utf8.decode(response.bodyBytes));
     } catch (exception) {
