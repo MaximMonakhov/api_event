@@ -47,7 +47,7 @@ class Provider {
       }
 
       if (response.statusCode == 200) {
-        List<Cookie> cookies = parseCookie(response.headers["Set-Cookie"]);
+        List<Cookie> cookies = parseCookie(response.headers["set-cookie"]);
         event.cookies = cookies;
 
         final String body = utf8.decode(response.bodyBytes);
