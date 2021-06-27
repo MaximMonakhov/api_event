@@ -15,27 +15,25 @@ class Provider {
   Provider._internal();
 
   static String url;
-
-  Duration timeout = Duration(seconds: 10);
-  HttpClient httpClient = HttpClient();
+  static Duration timeout = Duration(seconds: 10);
+  static void Function(HttpClientResponse response) onRequestDone;
 
   Future<dynamic> run(ApiEvent event, String params, String body, Map<String, String> headers, List<Cookie> cookies) async {
     event.publish(ApiResponse.loading("Loading"));
 
-    String url = (Provider.url ?? "") + event.service + (params != null ? "/" + params : "");
-    Uri uri = Uri.parse(url);
+    HttpClient httpClient = HttpClient();
+    httpClient.connectionTimeout = timeout;
 
     try {
-      HttpClientRequest request;
+      String url = (Provider.url ?? "") + event.service + (params != null ? "/" + params : "");
+      Uri uri = Uri.parse(url);
 
+      HttpClientRequest request;
       Map<String, String> headersBuilder = {};
 
       headersBuilder.addAll(headers ?? {});
 
-      if (cookies != null && cookies.isNotEmpty) {
-        String rawCookies = cookies.map((Cookie cookie) => '${cookie.name}=${cookie.value}').join('; ');
-        if (rawCookies != null && rawCookies.isNotEmpty) headersBuilder.addAll({"cookie": rawCookies});
-      }
+      if (cookies != null && cookies.isNotEmpty) headersBuilder.addAll({"cookie": cookies.map((Cookie cookie) => '${cookie.name}=${cookie.value}').join('; ')});
 
       headersBuilder.forEach((key, value) {
         request.headers.add(key, value);
@@ -43,20 +41,22 @@ class Provider {
 
       switch (event.httpMethod) {
         case HttpMethod.GET:
-          request = await httpClient.get(uri.host, uri.port, uri.path).timeout(timeout);
+          request = await httpClient.get(uri.host, uri.port, uri.path);
           break;
         case HttpMethod.POST:
           List<int> bodyBytes = utf8.encode(body);
           request.add(bodyBytes);
-          request = await httpClient.post(uri.host, uri.port, uri.path).timeout(timeout);
+          request = await httpClient.post(uri.host, uri.port, uri.path);
           break;
       }
 
       HttpClientResponse response = await request.close();
 
-      if (response.statusCode == 200) {
-        event.cookies = response.cookies;
+      if (onRequestDone != null) onRequestDone(response);
 
+      event.response = response;
+
+      if (response.statusCode == 200) {
         final completer = Completer<String>();
         final contents = StringBuffer();
         response.transform(utf8.decoder).listen((data) {
@@ -65,21 +65,26 @@ class Provider {
 
         String body = await completer.future;
 
-        if (body.isNotEmpty && event.parser != null) {
-          final data = await compute(event.parser, body);
-          event.publish(ApiResponse.completed(data));
+        if (body.isNotEmpty) {
+          if (event.parser != null) {
+            final data = await compute(event.parser, body);
+            event.publish(ApiResponse.completed(data));
+          } else
+            event.publish(ApiResponse.completed(body));
         } else
-          event.publish(ApiResponse.completed(body));
+          event.publish(ApiResponse.completed("Empty Body"));
       } else
-        throw Exception("Bad status code: " + response.statusCode.toString() + ". Body: " + body);
+        throw Exception("Bad status code: " + response.statusCode.toString() + "\nBody: " + body);
     } catch (exception) {
-      print("Exception on provider.run: " + exception.toString());
+      print("Exception on provider.run\n" + exception.toString());
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
     }
 
     return event.value;
   }
+
+  Map<String, String> _buildHeaders() {}
 
   Future<ApiResponse> _onException(exception) async {
     bool internetStatus = await checkInternetConnection();

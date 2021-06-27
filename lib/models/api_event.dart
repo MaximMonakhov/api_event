@@ -11,7 +11,8 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
   final String service;
   final HttpMethod httpMethod;
   final T Function(String body) parser;
-  List<Cookie> cookies;
+
+  HttpClientResponse response;
 
   ApiEvent({@required this.service, @required this.httpMethod, this.parser}) : assert(service != null && service.isNotEmpty && httpMethod != null);
 
