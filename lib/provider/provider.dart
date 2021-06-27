@@ -29,6 +29,16 @@ class Provider {
       Uri uri = Uri.parse(url);
 
       HttpClientRequest request;
+
+      switch (event.httpMethod) {
+        case HttpMethod.GET:
+          request = await httpClient.get(uri.host, uri.port, uri.path);
+          break;
+        case HttpMethod.POST:
+          request = await httpClient.post(uri.host, uri.port, uri.path);
+          break;
+      }
+
       Map<String, String> headersBuilder = {};
 
       headersBuilder.addAll(headers ?? {});
@@ -39,15 +49,9 @@ class Provider {
         request.headers.add(key, value);
       });
 
-      switch (event.httpMethod) {
-        case HttpMethod.GET:
-          request = await httpClient.get(uri.host, uri.port, uri.path);
-          break;
-        case HttpMethod.POST:
-          List<int> bodyBytes = utf8.encode(body);
-          request.add(bodyBytes);
-          request = await httpClient.post(uri.host, uri.port, uri.path);
-          break;
+      if (body != null && body.isNotEmpty) {
+        List<int> bodyBytes = utf8.encode(body);
+        request.add(bodyBytes);
       }
 
       HttpClientResponse response = await request.close();
