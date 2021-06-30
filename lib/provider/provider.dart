@@ -16,7 +16,7 @@ class Provider {
 
   static String url;
   static Duration timeout = Duration(seconds: 10);
-  static void Function(HttpClientResponse response) onRequestDone;
+  static void Function(HttpClientResponse response, String body) onRequestDone;
 
   Future<dynamic> run(ApiEvent event, String params, String body, Map<String, String> headers, List<Cookie> cookies) async {
     event.publish(ApiResponse.loading("Loading"));
@@ -56,29 +56,29 @@ class Provider {
 
       HttpClientResponse response = await request.close();
 
-      if (onRequestDone != null) onRequestDone(response);
+      final completer = Completer<String>();
+      final contents = StringBuffer();
+      response.transform(utf8.decoder).listen((data) {
+        contents.write(data);
+      }, onDone: () => completer.complete(contents.toString()));
+
+      String responseBody = await completer.future;
+
+      if (onRequestDone != null) onRequestDone(response, body);
 
       event.response = response;
 
       if (response.statusCode == 200) {
-        final completer = Completer<String>();
-        final contents = StringBuffer();
-        response.transform(utf8.decoder).listen((data) {
-          contents.write(data);
-        }, onDone: () => completer.complete(contents.toString()));
-
-        String body = await completer.future;
-
-        if (body.isNotEmpty) {
+        if (responseBody.isNotEmpty) {
           if (event.parser != null) {
-            final data = await compute(event.parser, body);
+            final data = await compute(event.parser, responseBody);
             event.publish(ApiResponse.completed(data));
           } else
-            event.publish(ApiResponse.completed(body));
+            event.publish(ApiResponse.completed(responseBody));
         } else
           event.publish(ApiResponse.completed("Empty Body"));
       } else
-        throw Exception("Bad status code: " + response.statusCode.toString() + "\nBody: " + body);
+        throw Exception("Bad status code: " + response.statusCode.toString() + "\nBody: " + responseBody);
     } catch (exception) {
       print("Exception on provider.run\n" + exception.toString());
       ApiResponse errorApiResponse = await _onException(exception);
@@ -87,8 +87,6 @@ class Provider {
 
     return event.value;
   }
-
-  Map<String, String> _buildHeaders() {}
 
   Future<ApiResponse> _onException(exception) async {
     bool internetStatus = await checkInternetConnection();
