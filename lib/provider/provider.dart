@@ -76,7 +76,7 @@ class Provider {
 
       event.response = response;
 
-      if (response.statusCode == 200) {
+      if (200 <= response.statusCode && response.statusCode <= 299) {
         if (responseBody.isNotEmpty) {
           if (event.parser != null) {
             final data = await compute(event.parser, responseBody);
