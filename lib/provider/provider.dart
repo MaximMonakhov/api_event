@@ -35,10 +35,10 @@ class Provider {
 
       switch (event.httpMethod) {
         case HttpMethod.GET:
-          request = await httpClient.get(uri.host, uri.port, uri.path);
+          request = await httpClient.getUrl(uri);
           break;
         case HttpMethod.POST:
-          request = await httpClient.post(uri.host, uri.port, uri.path);
+          request = await httpClient.postUrl(uri);
           break;
       }
 
