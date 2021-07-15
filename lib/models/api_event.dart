@@ -22,8 +22,7 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
     subject.sink.add(response);
   }
 
-  Future<ApiResponse<T>> run({String params, String body, Map<String, String> headers, List<Cookie> cookies}) async =>
-      await provider.run(this, params, body, headers, cookies);
+  Future<ApiResponse<T>> run({String params, String body, Map<String, String> headers, List<Cookie> cookies}) async => await provider.run(this, params, body, headers, cookies);
 }
 
-enum HttpMethod { GET, POST }
+enum HttpMethod { GET, POST, PUT, DELETE }
