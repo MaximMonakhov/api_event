@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:api_event/models/api_event.dart';
 import 'package:api_event/models/api_response.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 
 class Provider {
