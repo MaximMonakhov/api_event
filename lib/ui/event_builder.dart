@@ -15,6 +15,7 @@ class EventBuilder<T> extends StatelessWidget {
   final Widget Function(BuildContext, T) builder;
   final Widget initial;
   final Widget loading;
+  final Function refresh;
   final Widget Function(T data) completed;
   final Widget Function(String message) error;
 
@@ -24,6 +25,7 @@ class EventBuilder<T> extends StatelessWidget {
       this.builder,
       this.initial,
       this.loading,
+      this.refresh,
       this.completed,
       this.error})
       : assert(event != null && (builder != null || completed != null)),
@@ -65,19 +67,43 @@ class EventBuilder<T> extends StatelessWidget {
 
   Widget loadingWidget() => Center(
         child: Container(
-          child: Container(
-            width: 20.0,
-            height: 20.0,
-            child: CircularProgressIndicator(
-              strokeWidth: 1,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-            ),
+          width: 20.0,
+          height: 20.0,
+          child: CircularProgressIndicator(
+            strokeWidth: 1,
+            backgroundColor: Colors.transparent,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
           ),
         ),
       );
 
   Widget errorWidget(String message) => Center(
-        child: Text("Произошла ошибка: " + message),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              Icons.error_outline,
+              color: Colors.redAccent,
+              size: 30.0,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 5.0),
+            ),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+            refresh != null
+                ? TextButton(
+                    child: Text(
+                      "Повторить попытку",
+                      style: TextStyle(color: Colors.blue[600], fontSize: 15.0),
+                    ),
+                    onPressed: refresh,
+                  )
+                : Container(),
+          ],
+        ),
       );
 }

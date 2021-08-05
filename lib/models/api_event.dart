@@ -16,13 +16,16 @@ class ApiEvent<T> extends Event<ApiResponse<T>> {
 
   ApiEvent({@required this.service, @required this.httpMethod, this.parser}) : assert(service != null && service.isNotEmpty && httpMethod != null);
 
+  bool get isCompleted => this.value.status == Status.COMPLETED;
+
   @override
   void publish(ApiResponse<dynamic> event) {
     ApiResponse<T> response = ApiResponse<T>(event);
     subject.sink.add(response);
   }
 
-  Future<ApiResponse<T>> run({String params, String body, Map<String, String> headers, List<Cookie> cookies}) async => await provider.run(this, params, body, headers, cookies);
+  Future<ApiResponse<T>> run({String params, String body, Map<String, String> headers, List<Cookie> cookies}) async =>
+      await provider.run(this, params, body, headers, cookies);
 }
 
 enum HttpMethod { GET, POST, PUT, DELETE }
