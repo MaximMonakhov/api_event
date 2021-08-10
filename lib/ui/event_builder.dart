@@ -10,6 +10,7 @@ class EventBuilder<T> extends StatelessWidget {
   final Color loadingColor;
   final Function refresh;
   final Widget Function(T data) completed;
+  final Widget completedEmpty;
   final Widget Function(String message) error;
 
   const EventBuilder(
@@ -21,6 +22,7 @@ class EventBuilder<T> extends StatelessWidget {
       this.loadingColor,
       this.refresh,
       this.completed,
+      this.completedEmpty,
       this.error})
       : assert(event != null && (builder != null || completed != null)),
         super(key: key);
@@ -30,9 +32,7 @@ class EventBuilder<T> extends StatelessWidget {
     return StreamBuilder(
         stream: event.stream,
         builder: (context, snapshot) {
-          if (builder != null) {
-            return builder(context, snapshot.data);
-          }
+          if (builder != null) return builder(context, snapshot.data);
 
           Widget currentLoadingWidget = loading ?? loadingWidget();
 
@@ -46,7 +46,9 @@ class EventBuilder<T> extends StatelessWidget {
                 return currentLoadingWidget;
                 break;
               case Status.COMPLETED:
-                return completed(response.data);
+                return completedEmpty != null && response.data.isEmpty
+                    ? completedEmpty
+                    : completed(response.data);
                 break;
               case Status.ERROR:
                 return error != null
