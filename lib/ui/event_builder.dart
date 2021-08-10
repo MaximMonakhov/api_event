@@ -2,19 +2,12 @@ import 'package:api_event/models/api_response.dart';
 import 'package:api_event/models/event.dart';
 import 'package:flutter/material.dart';
 
-/// EventBuilder
-///
-/// Если типом события [event] является [ApiResponse], то виджет принимает:
-/// [initial]: виджет, в случае пустого [event]
-/// [loading], [completed], [error]: виджеты в случае каждого [Status] этого [ApiResponse]
-///
-/// Если тип события локальный, то виджет принимает:
-/// [builder]
 class EventBuilder<T> extends StatelessWidget {
   final Event event;
   final Widget Function(BuildContext, T) builder;
   final Widget initial;
   final Widget loading;
+  final Color loadingColor;
   final Function refresh;
   final Widget Function(T data) completed;
   final Widget Function(String message) error;
@@ -25,6 +18,7 @@ class EventBuilder<T> extends StatelessWidget {
       this.builder,
       this.initial,
       this.loading,
+      this.loadingColor,
       this.refresh,
       this.completed,
       this.error})
@@ -46,6 +40,7 @@ class EventBuilder<T> extends StatelessWidget {
 
           if (snapshot.data is ApiResponse) {
             ApiResponse response = snapshot.data as ApiResponse;
+
             switch (response.status) {
               case Status.LOADING:
                 return currentLoadingWidget;
@@ -67,12 +62,13 @@ class EventBuilder<T> extends StatelessWidget {
 
   Widget loadingWidget() => Center(
         child: Container(
-          width: 20.0,
-          height: 20.0,
+          width: 15.0,
+          height: 15.0,
           child: CircularProgressIndicator(
             strokeWidth: 1,
             backgroundColor: Colors.transparent,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+            valueColor:
+                AlwaysStoppedAnimation<Color>(loadingColor ?? Colors.black),
           ),
         ),
       );

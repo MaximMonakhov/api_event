@@ -2,28 +2,33 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:api_event/exceptions/bad_status_code_exception.dart';
 import 'package:api_event/models/api_event.dart';
 import 'package:api_event/models/api_response.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
+
+enum DEBUG_MODE { OFF, EXCEPTIONS, FULL }
 
 class Provider {
   static final Provider _provider = Provider._internal();
-  factory Provider() {
-    return _provider;
-  }
+  factory Provider() => _provider;
   Provider._internal();
 
   static String serviceIsUnavailableMessage = "Сервис недоступен";
   static String internalErrorMessage = "Возникла внутренняя ошибка";
   static String noInternetConnectionMessage = "Отсутствует интернет-соединение";
+  static String requestTimeoutMessage = "Время ожидания запроса истекло";
 
   static String url;
   static Duration timeout = Duration(seconds: 30);
   static void Function(HttpClientResponse response, String body) onRequestDone;
 
-  Future<dynamic> run(ApiEvent event, String params, String body, Map<String, String> headers, List<Cookie> cookies) async {
-    event.publish(ApiResponse.loading("Loading"));
+  static DEBUG_MODE debugMode = DEBUG_MODE.EXCEPTIONS;
+
+  Future<dynamic> run(ApiEvent event, String params, String body,
+      Map<String, String> headers, List<Cookie> cookies) async {
+    event.publish(ApiResponse.loading());
 
     HttpClient httpClient;
 
@@ -31,22 +36,23 @@ class Provider {
       httpClient = HttpClient();
       httpClient.connectionTimeout = timeout;
 
-      String url = (Provider.url ?? "") + event.service + (params != null ? params : "");
+      String url =
+          (Provider.url ?? "") + event.service + (params != null ? params : "");
       Uri uri = Uri.parse(url);
 
       HttpClientRequest request;
 
       switch (event.httpMethod) {
-        case HttpMethod.GET:
+        case HTTP_METHOD.GET:
           request = await httpClient.getUrl(uri);
           break;
-        case HttpMethod.POST:
+        case HTTP_METHOD.POST:
           request = await httpClient.postUrl(uri);
           break;
-        case HttpMethod.PUT:
+        case HTTP_METHOD.PUT:
           request = await httpClient.putUrl(uri);
           break;
-        case HttpMethod.DELETE:
+        case HTTP_METHOD.DELETE:
           request = await httpClient.deleteUrl(uri);
           break;
       }
@@ -55,7 +61,12 @@ class Provider {
 
       headersBuilder.addAll(headers ?? {});
 
-      if (cookies != null && cookies.isNotEmpty) headersBuilder.addAll({"cookie": cookies.map((Cookie cookie) => '${cookie.name}=${cookie.value}').join('; ')});
+      if (cookies != null && cookies.isNotEmpty)
+        headersBuilder.addAll({
+          "cookie": cookies
+              .map((Cookie cookie) => '${cookie.name}=${cookie.value}')
+              .join('; ')
+        });
 
       headersBuilder.forEach((key, value) {
         request.headers.add(key, value);
@@ -65,6 +76,10 @@ class Provider {
         List<int> bodyBytes = utf8.encode(body);
         request.add(bodyBytes);
       }
+
+      _printMessage(
+          _getRequestMessage(url, headersBuilder, body, event.httpMethod),
+          DEBUG_MODE.FULL);
 
       HttpClientResponse response = await request.close();
 
@@ -81,18 +96,28 @@ class Provider {
       event.response = response;
 
       if (200 <= response.statusCode && response.statusCode <= 299) {
-        if (responseBody.isNotEmpty) {
-          if (event.parser != null) {
-            final data = await compute(event.parser, responseBody);
-            event.publish(ApiResponse.completed(data));
-          } else
-            event.publish(ApiResponse.completed(responseBody));
+        if (event.parser != null) {
+          final data = await compute(event.parser, responseBody);
+          event.publish(ApiResponse.completed(data: data));
         } else
-          event.publish(ApiResponse.completed("Empty Body"));
+          event.publish(ApiResponse.completed(data: responseBody));
       } else
-        throw Exception("Bad status code: " + response.statusCode.toString() + "\nBody: " + responseBody);
+        throw BadStatusCodeException(
+            response.statusCode, internalErrorMessage, responseBody);
+    } on BadStatusCodeException catch (exception) {
+      _printMessage(exception.toString(), DEBUG_MODE.EXCEPTIONS);
+
+      event.publish(ApiResponse.error(
+          statusCode: exception.statusCode,
+          message: exception.message,
+          body: exception.body));
+    } on TimeoutException catch (exception) {
+      _printMessage(exception.toString(), DEBUG_MODE.EXCEPTIONS);
+
+      event.publish(ApiResponse.error(message: requestTimeoutMessage));
     } catch (exception) {
-      print("Exception on provider.run\n" + exception.toString());
+      _printMessage(exception.toString(), DEBUG_MODE.EXCEPTIONS);
+
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
     } finally {
@@ -108,19 +133,29 @@ class Provider {
     bool internetStatus = await checkInternetConnection();
 
     return internetStatus
-        ? exception.runtimeType == SocketException || exception.runtimeType == TimeoutException
-            ? ApiResponse.error(serviceIsUnavailableMessage)
-            : ApiResponse.error(internalErrorMessage)
-        : ApiResponse.error(noInternetConnectionMessage);
+        ? exception.runtimeType == SocketException
+            ? ApiResponse.error(message: serviceIsUnavailableMessage)
+            : ApiResponse.error(message: internalErrorMessage)
+        : ApiResponse.error(message: noInternetConnectionMessage);
   }
 
   static Future<bool> checkInternetConnection() async {
     try {
-      ConnectivityResult connectivityResult = await Connectivity().checkConnectivity();
+      ConnectivityResult connectivityResult =
+          await Connectivity().checkConnectivity();
 
-      return connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
+      return connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi;
     } catch (exception) {
-      return true;
+      return false;
     }
+  }
+
+  String _getRequestMessage(
+          String url, Map headers, String body, HTTP_METHOD httpMethod) =>
+      "${httpMethod.asString} request with timeout ${Provider.timeout.toString()}\nURL: $url\nHeaders: $headers\nBody: $body";
+
+  void _printMessage(String message, DEBUG_MODE debugMode) {
+    if (Provider.debugMode == debugMode) print(message);
   }
 }

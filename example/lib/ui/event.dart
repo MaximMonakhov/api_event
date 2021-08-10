@@ -10,7 +10,7 @@ class LocalWidget extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          Text("Локальное событие"),
+          Text("Local Event"),
           EventWidget(event),
           ButtonWidget(event),
         ],
@@ -41,6 +41,6 @@ class ButtonWidget extends StatelessWidget {
     return TextButton(
         onPressed: () =>
             event.publish(event.value == null ? false : !event.value),
-        child: Text("Сменить состояние"));
+        child: Text("Change state"));
   }
 }
