@@ -7,5 +7,5 @@ class BadStatusCodeException implements Exception {
 
   @override
   String toString() =>
-      "BadStatusCodeException\nCode:$statusCode\nMessage:$message";
+      "BadStatusCodeException\nCode:$statusCode\nMessage:$message\nBody:$body";
 }

@@ -5,10 +5,9 @@ import 'dart:io';
 import 'package:api_event/exceptions/bad_status_code_exception.dart';
 import 'package:api_event/models/api_event.dart';
 import 'package:api_event/models/api_response.dart';
+import 'package:api_event/utils/printer.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
-
-enum DEBUG_MODE { OFF, EXCEPTIONS, FULL }
 
 class Provider {
   static final Provider _provider = Provider._internal();
@@ -24,13 +23,16 @@ class Provider {
   static Duration timeout = Duration(seconds: 30);
   static void Function(HttpClientResponse response, String body) onRequestDone;
 
-  static DEBUG_MODE debugMode = DEBUG_MODE.EXCEPTIONS;
+  Printer printer = Printer();
 
   Future<dynamic> run(ApiEvent event, String params, String body,
       Map<String, String> headers, List<Cookie> cookies) async {
     event.publish(ApiResponse.loading());
 
     HttpClient httpClient;
+
+    Stopwatch stopwatch;
+    if (Printer.mode == PRINTER_MODE.FULL) stopwatch = Stopwatch()..start();
 
     try {
       httpClient = HttpClient();
@@ -77,9 +79,8 @@ class Provider {
         request.add(bodyBytes);
       }
 
-      _printMessage(
-          _getRequestMessage(url, headersBuilder, body, event.httpMethod),
-          DEBUG_MODE.FULL);
+      printer.info(
+          _getRequestMessage(url, headersBuilder, body, event.httpMethod));
 
       HttpClientResponse response = await request.close();
 
@@ -105,24 +106,26 @@ class Provider {
         throw BadStatusCodeException(
             response.statusCode, internalErrorMessage, responseBody);
     } on BadStatusCodeException catch (exception) {
-      _printMessage(exception.toString(), DEBUG_MODE.EXCEPTIONS);
+      printer.exception(exception.toString());
 
       event.publish(ApiResponse.error(
           statusCode: exception.statusCode,
           message: exception.message,
           body: exception.body));
     } on TimeoutException catch (exception) {
-      _printMessage(exception.toString(), DEBUG_MODE.EXCEPTIONS);
+      printer.exception(exception.toString());
 
       event.publish(ApiResponse.error(message: requestTimeoutMessage));
     } catch (exception) {
-      _printMessage(exception.toString(), DEBUG_MODE.EXCEPTIONS);
+      printer.exception(exception.toString());
 
       ApiResponse errorApiResponse = await _onException(exception);
       event.publish(errorApiResponse);
     } finally {
-      if (httpClient != null) {
-        httpClient.close();
+      if (httpClient != null) httpClient.close();
+      if (stopwatch != null) {
+        printer.info("Request completed in " + stopwatch.elapsed.toString());
+        stopwatch.stop();
       }
     }
 
@@ -153,9 +156,5 @@ class Provider {
 
   String _getRequestMessage(
           String url, Map headers, String body, HTTP_METHOD httpMethod) =>
-      "${httpMethod.asString} request with timeout ${Provider.timeout.toString()}\nURL: $url\nHeaders: $headers\nBody: $body";
-
-  void _printMessage(String message, DEBUG_MODE debugMode) {
-    if (Provider.debugMode == debugMode) print(message);
-  }
+      "Executing ${httpMethod.asString} request with timeout ${Provider.timeout.toString()}\nURL: $url\nHeaders: $headers\nBody: $body";
 }
